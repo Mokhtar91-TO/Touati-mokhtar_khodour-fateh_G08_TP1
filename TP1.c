@@ -9,11 +9,11 @@ const int date = 10;
 const int history =5;
 
 typedef struct Employerecords{
-    char Employee_ID[ID];
-    char Full_Name[full_name];
-    char Last_consultation_Date[date];
-    char Retrurn_to_wrok_Date[date];
-    int Total_Number_of_consultations;
+    char Employee_ID[ID];//we need to define the id of the employee
+    char Full_Name[full_name];//we need to define the full name of the employee
+    char Last_consultation_Date[date];//we need to define the last consultation date of the employee
+    char Retrurn_to_wrok_Date[date];//we need to define the return to work date of the employee
+    int Total_Number_of_consultations;//we need to define the total number of consultations of the employee
     char history[history][500];//we need a matrix that hold the 5 reasons of past consultation 
     struct Employerecords *p;
 }Employerecords;//we need to define a records that holds employee informations
@@ -80,10 +80,58 @@ Employerecords* read_emprecord_file(const char *emprecord){
 }
 
 
+//now we need a function to add a new employee to the list
 
 void add(ptr *h,Employerecords newemp){
     Employerecords* newcell = (Employerecords*)malloc(sizeof(Employerecords));//we need to allocate memory for the new employee
     *newcell = newemp;//we need to copy the new employee to the new cell
     newcell->p=*h;//we need to put the head pointer in the next pointer of the new employee
     *h=newcell;//we need to put the new employee in the head pointer
+}
+
+//now we need a function to update the employee information
+//so we need the head of the list and the new employee information and we also need its id to confirm that this is the employee we want to update
+
+void update(ptr h,Employerecords newemp,char id[ID]){
+    Employerecords* temp = h;//we need a temporary pointer to point to the head of the list because we need to loop through the list to find the employee we want to update
+
+    while(temp!=NULL){//we need a loop to loop through the list
+        //now we are going to use a function called strcmp to compare between two strings and if they are equal it will return 0
+        if(strcmp(temp->Employee_ID,id)==0){//if the id of the employee is equal to the id we want to update 
+            *temp = newemp;
+            printf("Employee information updated successfully\n");
+            return;//in order to exit the function and stop the loop
+        }
+        temp=temp->p;//we need to move to the next employee in the list because we didn't find the employee we want to update yet
+    }
+
+    printf("Employee not found\n");//if we didn't find the employee we want to update  
+}
+
+
+//now we need a function to delete an employee from the list 
+//it is the same as delete by position or value in linked list the difference is that we need to compare between the id of the employee and the id we want to delete
+
+void delete(ptr *h,char id[ID]){
+    Employerecords* temp=*h;//we need a temporary pointer to point to the head of the list because we need to loop through the list to find the employee we want to delete
+    Employerecords* prev=NULL;//we need a pointer to the previous employee in the list because we need to link the previous employee with the next employee after we delete the employee we want to delete 
+    while(temp!=NULL && strcmp(temp->Employee_ID,id)!=0){
+        prev=temp;//we need to put the current employee in the previous pointer 
+        temp=temp->p;//we need to move to the next employee in the list because we didnt find the employee we want to delete yet 
+
+    }
+    if(temp==NULL){
+        printf("Employee not found\n");
+        return;
+    }
+    if(prev==NULL){
+        *h=temp->p;//if the employee we want to delete is the first employee in the list we need to put the next employee in the head pointer 
+    }else{
+        prev->p=temp->p;//if the employee we want to delete is not the first employee in the list we need to link the previous employee with the next employee after we delete the employee we want to delete 
+    }
+
+    free(temp);//we need to free the memory of the employee we want to delete 
+    printf("Employee deleted successfully\n");
+
+
 }
