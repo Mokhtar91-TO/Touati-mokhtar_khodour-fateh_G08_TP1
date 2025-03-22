@@ -8,8 +8,9 @@
 
 const int ID =8;
 const int full_name = 30;
-const int date = 10;
+const int date = 10;//XX/XX/XXXX
 const int history =5;
+const int date2 = 5;//XX:XX
 
 
 
@@ -154,7 +155,7 @@ void delete(ptr *h,char id[ID]){
 typedef struct consultation{
     char Employee_ID[ID];//we need to define the id of the employee 
     char Employee_Name[full_name];//we need to define the name of the employee 
-    char Consultation_Time[date];//we need to define the consultation time of the employee 
+    char Consultation_Time[date2];//we need to define the consultation time of the employee 
     char Consultation_Reason[500];//we need to define the consultation reason of the employee 
     struct consultation *p; 
     int priority;//we need to define the priority of the appointment
@@ -182,11 +183,6 @@ consultation* read_consultation_file(const char *consultationfile){
             free(newconsultation);//if reading the file failed free the memory 
             break;
         }
-
-        
-
-
-
         
     }
 }
