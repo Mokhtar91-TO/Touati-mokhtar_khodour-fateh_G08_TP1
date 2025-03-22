@@ -3,10 +3,19 @@
 #include <string.h>
 
 
+
+
+
 const int ID =8;
 const int full_name = 30;
 const int date = 10;
 const int history =5;
+
+
+
+//TASK 1 : Managing employee's records 
+
+
 
 typedef struct Employerecords{
     char Employee_ID[ID];//we need to define the id of the employee
@@ -23,8 +32,8 @@ typedef struct Employerecords{
 
 typedef struct Employerecords *ptr;
 
-Employerecords* read_emprecord_file(const char *emprecord){
-    FILE* file= fopen(emprecord,"r");//with this code we can open the file in read mode 
+Employerecords* read_emprecord_file(const char *emprecordfile){
+    FILE* file= fopen(emprecordfile,"r");//with this code we can open the file in read mode 
     if (file == NULL){
         printf("Error: could not open file\n");
         return NULL;
@@ -85,7 +94,7 @@ Employerecords* read_emprecord_file(const char *emprecord){
 void add(ptr *h,Employerecords newemp){
     Employerecords* newcell = (Employerecords*)malloc(sizeof(Employerecords));//we need to allocate memory for the new employee
     *newcell = newemp;//we need to copy the new employee to the new cell
-    newcell->p=*h;//we need to put the head pointer in the next pointer of the new employee
+    newcell->p=*h;//we need to put the head pointer in the next pointer of the new employee so it will point to the next employee in the list
     *h=newcell;//we need to put the new employee in the head pointer
 }
 
@@ -132,6 +141,63 @@ void delete(ptr *h,char id[ID]){
 
     free(temp);//we need to free the memory of the employee we want to delete 
     printf("Employee deleted successfully\n");
-
-
 }
+
+
+
+
+
+//TASK 2 : Managing appointments using priority appointment queue
+
+
+
+typedef struct consultation{
+    char Employee_ID[ID];//we need to define the id of the employee 
+    char Employee_Name[full_name];//we need to define the name of the employee 
+    char Consultation_Time[date];//we need to define the consultation time of the employee 
+    char Consultation_Reason[500];//we need to define the consultation reason of the employee 
+    struct consultation *p; 
+    int priority;//we need to define the priority of the appointment
+
+}consultation;//we need to define a struct that holds the consultation information 
+
+//now we need a function to read the consultations.txt file 
+
+
+consultation* read_consultation_file(const char *consultationfile){
+    FILE* file= fopen(consultationfile,"r");//withe this code we can open the file in read mode 
+    if(file==NULL){
+        printf("Error: could not open file\n");
+        return NULL;
+    }
+    consultation* head=NULL;//the head pointer will point to the first consultation 
+    while(!feof(file)){//we need a loop to read consultation file bu using feof it loop until the end of the file and line by liner 
+        consultation* newconsultation = (consultation*)malloc(sizeof(consultation));
+        if(newconsultation==NULL){
+            printf("cannot allocate\n");
+            return NULL;
+        }
+        //we need to read the consultation file and stores them in our struct 
+        if(fscanf(file,"%[^;];%[^;];%[^;];%[^\n]",newconsultation->Employee_ID,newconsultation->Employee_Name,newconsultation->Consultation_Reason,newconsultation->Consultation_Time)!=4){
+            free(newconsultation);//if reading the file failed free the memory 
+            break;
+        }
+
+        
+
+
+
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
