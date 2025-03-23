@@ -163,14 +163,14 @@ typedef struct consultation{
 
 }consultation;//we need to define a struct that holds the consultation information 
 
-typedef struct Queue{
+typedef struct Queue_appointments{
     consultation* head;
     consultation* tail;
     int size;//we need to define the size of the queue to know how many appointments in the queue so we dont exceed the maximum number of appointments in the queue  which is 10
-}Queue;//we need to define a struct that holds the head and the tail of the queue
+}Queue_appointments;//we need to define a struct that holds the head and the tail of the queue
 
-Queue* create_Queue(){
-    Queue* q = (Queue*)malloc(sizeof(Queue));//we need to allocate memory for the queue
+Queue_appointments* create_Queue(){
+    Queue_appointments* q = (Queue_appointments*)malloc(sizeof(Queue_appointments));//we need to allocate memory for the queue
     q->head=NULL;
     q->tail=NULL;
     q->size=0;//we need to put the size of the queue to 0 because the queue is empty at first 
@@ -180,7 +180,7 @@ Queue* create_Queue(){
 
 //now we need a function to add a new appointment to the queue
 
-void add_appointment(Queue* q,consultation* newconsultation){
+void add_appointment(Queue_appointments* q,consultation* newconsultation){
     newconsultation->p=NULL;//we need to put NULL in the next pointer of the new appointment because it is the last appointment in the queue, however if it is not the last appointment we are going to link it with the correct appointment 
     if(q->head==NULL || q->head->priority < newconsultation->priority ){//if the queue is empty and the priority of the new appointment is higher than the priority of the head of the queue 
         newconsultation->p=q->head;//we need to put the head pointer in the next pointer of the new appointment so we will not loose the rest of the appointments in the queue
@@ -216,7 +216,7 @@ consultation* read_consultation_file(const char *consultationfile){
         printf("Error: could not open file\n");
         return NULL;
     }
-     Queue* q = create_Queue();//we need to create a queue to store the consultations 
+     Queue_appointments* q = create_Queue();//we need to create a queue to store the consultations 
     while(!feof(file)){//we need a loop to read consultation file bu using feof it loop until the end of the file and line by liner 
         consultation* newconsultation = (consultation*)malloc(sizeof(consultation));
         if(newconsultation==NULL){
@@ -286,14 +286,23 @@ int initialize_appointments_priority(char* consultation_reason){
 
 
 //now we need a function to add new apppoinments on-demand
+//but if the reason is return to work it will be not accepted 
 
-void adding_new_appointments(Queue* q,char* ID,char* Name,char* consultatio_reason,char* time){
+void adding_new_appointments(Queue_appointments* q,char* ID,char* Name,char* consultatio_reason,char* time){
     if(q->size>=max_appointments){
         printf("The queue is full\n");
+        printf("rscheduling the appointment for the next day\n");
+        rescheduling_for_nextday(q);//if the queue is full we need to reschedule the appointment for the next day
+        return;
+    }
+
+    if(strcmp(consultatio_reason,"Return-to-work")==0){
+        printf("The reason is return to work so the appointment will not be accepted\n");
         return;
     }
 
     consultation* newconsultation = (consultation*)malloc(sizeof(consultation));//we need to allocate memory for the new appointment
+    
 
     strcpy(newconsultation->Employee_ID,ID);//we need to copy the id of the employee to the new appointment 
     strcpy(newconsultation->Employee_Name,Name);//we need to copy the name of the employee to the new appointment 
@@ -304,6 +313,39 @@ void adding_new_appointments(Queue* q,char* ID,char* Name,char* consultatio_reas
     q->size++;//we need to increment the size of the queue because we added a new appointment to the queue
 
 }
+
+
+
+void rescheduling_for_nextday(Queue_appointments* q){
+    if(q->size==0){
+        printf("The queue is empty\n");
+        return;
+    }
+    consultation* temp = q->head;//we need a temporary pointer to point to the head of the queue because we need to loop through the queue to reschedule the appointments for the next day 
+
+    //we will loop through the queue until we reach the last appointment in the queue knowing that the last appointment in the queue has the lowest priority (it could be all of them has the highest priority but we will assume that the last appointment has the lowest priority)
+
+    while(temp!=NULL){
+        temp = temp->p;
+    }
+    if(temp->priority == 1){//if the last appointment in the queue has the highest priority we cannot reschedule
+        printf("Cannot reschedule the appointment due to the highest priority\n");
+        return;
+    }
+    //if the condition abouve is not satisfied we can reschedule the appointment for the next day
+
+    strcpy(temp->Consultation_Time,"Next day");//we need to reschedule the appointment for the next day 
+    printf("The appointment rescheduled successfully for the employye ID = %s  \n",temp->Employee_ID);
+}
+
+//now we move to the cancelling or closing function(once the consultation is finished)
+
+ 
+
+
+
+
+
 
 
 
