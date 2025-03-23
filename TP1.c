@@ -11,6 +11,7 @@ const int full_name = 30;
 const int date = 10;//XX/XX/XXXX
 const int history =5;
 const int date2 = 5;//XX:XX
+const int max_appointments = 10;
 
 
 
@@ -162,16 +163,60 @@ typedef struct consultation{
 
 }consultation;//we need to define a struct that holds the consultation information 
 
+typedef struct Queue{
+    consultation* head;
+    consultation* tail;
+    int size;//we need to define the size of the queue to know how many appointments in the queue so we dont exceed the maximum number of appointments in the queue  which is 10
+}Queue;//we need to define a struct that holds the head and the tail of the queue
+
+Queue* create_Queue(){
+    Queue* q = (Queue*)malloc(sizeof(Queue));//we need to allocate memory for the queue
+    q->head=NULL;
+    q->tail=NULL;
+    q->size=0;//we need to put the size of the queue to 0 because the queue is empty at first 
+    return q;
+}
+
+
+//now we need a function to add a new appointment to the queue
+
+void add_appointment(Queue* q,consultation* newconsultation){
+    newconsultation->p=NULL;//we need to put NULL in the next pointer of the new appointment because it is the last appointment in the queue, however if it is not the last appointment we are going to link it with the correct appointment 
+    if(q->head==NULL || q->head->priority < newconsultation->priority ){//if the queue is empty and the priority of the new appointment is higher than the priority of the head of the queue 
+        newconsultation->p=q->head;//we need to put the head pointer in the next pointer of the new appointment so we will not loose the rest of the appointments in the queue
+        q->head=newconsultation;//we need to put the new appointment in the head pointer 
+        if(q->tail==NULL){//if the queue is empty we need to put the new appointment in the tail pointer
+            q->tail=newconsultation;
+    }
+    return;//in order to exit the function after adding the new appointment to the queue
+    } 
+
+    consultation* temp = q->head;//we need a temporary pointer to point to the head of the queue because we need to loop through the queue to find the right place to put the new appointment , and it is not practical to use the head directly because we need to link the new appointment with the rest of the appointments in the queue
+
+    while(temp->p!=NULL && temp->p->priority >= newconsultation->priority){
+        temp=temp->p;//we need to move to the next appointment in the queue because we didnt find the right place to put the new appointment yet
+    }
+
+    newconsultation->p=temp->p;//we need to link the new appointment with the rest of the appointments in the queue at first so we will not loose the rest of the appointments in the queue 
+    temp->p=newconsultation;//we need to put the new appointment in the right place in the queue
+
+    if(newconsultation->p==NULL){
+        q->tail=newconsultation;//if the new appointment is the last appointment in the queue we need to put it in the tail pointer 
+    }
+
+}
+
+
+
+
 //now we need a function to read the consultations.txt file 
-
-
 consultation* read_consultation_file(const char *consultationfile){
     FILE* file= fopen(consultationfile,"r");//withe this code we can open the file in read mode 
     if(file==NULL){
         printf("Error: could not open file\n");
         return NULL;
     }
-    consultation* head=NULL;//the head pointer will point to the first consultation 
+     Queue* q = create_Queue();//we need to create a queue to store the consultations 
     while(!feof(file)){//we need a loop to read consultation file bu using feof it loop until the end of the file and line by liner 
         consultation* newconsultation = (consultation*)malloc(sizeof(consultation));
         if(newconsultation==NULL){
@@ -179,13 +224,97 @@ consultation* read_consultation_file(const char *consultationfile){
             return NULL;
         }
         //we need to read the consultation file and stores them in our struct 
-        if(fscanf(file,"%[^;];%[^;];%[^;];%[^\n]",newconsultation->Employee_ID,newconsultation->Employee_Name,newconsultation->Consultation_Reason,newconsultation->Consultation_Time)!=4){
+        if(fscanf(file,"%[^;];%[^;];%[^;];%[^\n]",newconsultation->Employee_ID,newconsultation->Employee_Name,newconsultation->Consultation_Time,newconsultation->Consultation_Reason)!=4){
             free(newconsultation);//if reading the file failed free the memory 
             break;
         }
+
+        //now we need to define the priority of the appointment 
+        //we need to define the priority of the appointment based on the consultation reason 
+        //so we need to define the priority of each consultation reason 
+
+        if(strcmp(newconsultation->Consultation_Reason,"Work accident")==0){
+            newconsultation->priority=4;
+        }
+        else if(strcmp(newconsultation->Consultation_Reason,"Occupational disease")==0){
+            newconsultation->priority=3;
+        }
+        else if(strcmp(newconsultation->Consultation_Reason,"Return-to-work")==0){
+            newconsultation->priority=2;
+        }
+        else if(strcmp(newconsultation->Consultation_Reason,"Pre-employment")==0){
+            newconsultation->priority=2;
+        }
+        else if(strcmp(newconsultation->Consultation_Reason,"Periodic")==0){
+            newconsultation->priority=1;
+        }//now we had defined the priority of the appointment based on the consultation reason
+        
+        add_appointment(q,newconsultation);//we need to add the new consultation to the queue
         
     }
+
+    fclose(file);//close the file 
+    return q;//return the queue
 }
+
+
+//we need a function to initialize a priority to the new appointments 
+
+int initialize_appointments_priority(char* consultation_reason){
+    if(strcmp(consultation_reason,"Work accident")==0){
+        return 4;
+    }
+    else if(strcmp(consultation_reason,"Occupational disease")==0){
+        return 3;
+    }
+    else if(strcmp(consultation_reason,"Return-to-work")==0){
+        return 2;
+    }
+    else if(strcmp(consultation_reason,"Pre-employment")==0){
+        return 2;
+    }
+    else if(strcmp(consultation_reason,"Periodic")==0){
+        return 1;
+    }
+    return 0;
+}
+
+   
+
+   
+
+
+
+//now we need a function to add new apppoinments on-demand
+
+void adding_new_appointments(Queue* q,char* ID,char* Name,char* consultatio_reason,char* time){
+    if(q->size>=max_appointments){
+        printf("The queue is full\n");
+        return;
+    }
+
+    consultation* newconsultation = (consultation*)malloc(sizeof(consultation));//we need to allocate memory for the new appointment
+
+    strcpy(newconsultation->Employee_ID,ID);//we need to copy the id of the employee to the new appointment 
+    strcpy(newconsultation->Employee_Name,Name);//we need to copy the name of the employee to the new appointment 
+    strcpy(newconsultation->Consultation_Reason,consultatio_reason);//we need to copy the consultation reason of the employee to the new appointment 
+    strcpy(newconsultation->Consultation_Time,time);//we need to copy the consultation time of the employee to the new appointment*
+    newconsultation->priority=initialize_appointments_priority(consultatio_reason);//we need to define the priority of the new appointment base on the consultation reason
+    add_appointment(q,newconsultation);//we need to add the new appointment to the queue
+    q->size++;//we need to increment the size of the queue because we added a new appointment to the queue
+
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
