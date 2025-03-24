@@ -154,7 +154,7 @@ void delete(ptr *h,char id[ID]){
 
 
 typedef struct consultation{
-    char Employee_ID[ID];//we need to define the id of the employee 
+    char Employee_IDC[ID];//we need to define the id of the employee and i write IDC just to make the difference between the ID in the employee record and this one  
     char Employee_Name[full_name];//we need to define the name of the employee 
     char Consultation_Time[date2];//we need to define the consultation time of the employee 
     char Consultation_Reason[500];//we need to define the consultation reason of the employee 
@@ -224,7 +224,7 @@ consultation* read_consultation_file(const char *consultationfile){
             return NULL;
         }
         //we need to read the consultation file and stores them in our struct 
-        if(fscanf(file,"%[^;];%[^;];%[^;];%[^\n]",newconsultation->Employee_ID,newconsultation->Employee_Name,newconsultation->Consultation_Time,newconsultation->Consultation_Reason)!=4){
+        if(fscanf(file,"%[^;];%[^;];%[^;];%[^\n]",newconsultation->Employee_IDC,newconsultation->Employee_Name,newconsultation->Consultation_Time,newconsultation->Consultation_Reason)!=4){
             free(newconsultation);//if reading the file failed free the memory 
             break;
         }
@@ -304,7 +304,7 @@ void adding_new_appointments(Queue_appointments* q,char* ID,char* Name,char* con
     consultation* newconsultation = (consultation*)malloc(sizeof(consultation));//we need to allocate memory for the new appointment
     
 
-    strcpy(newconsultation->Employee_ID,ID);//we need to copy the id of the employee to the new appointment 
+    strcpy(newconsultation->Employee_IDC,ID);//we need to copy the id of the employee to the new appointment 
     strcpy(newconsultation->Employee_Name,Name);//we need to copy the name of the employee to the new appointment 
     strcpy(newconsultation->Consultation_Reason,consultatio_reason);//we need to copy the consultation reason of the employee to the new appointment 
     strcpy(newconsultation->Consultation_Time,time);//we need to copy the consultation time of the employee to the new appointment*
@@ -335,10 +335,62 @@ void rescheduling_for_nextday(Queue_appointments* q){
     //if the condition abouve is not satisfied we can reschedule the appointment for the next day
 
     strcpy(temp->Consultation_Time,"Next day");//we need to reschedule the appointment for the next day 
-    printf("The appointment rescheduled successfully for the employye ID = %s  \n",temp->Employee_ID);
+    printf("The appointment rescheduled successfully for the employye ID = %s  \n",temp->Employee_IDC);
 }
 
 //now we move to the cancelling or closing function(once the consultation is finished)
+
+void closing(Queue_appointments* q,ptr *employees_records_head){
+    if(q->size==0){
+        printf("The queue is empty no appointment to close\n");
+        return;
+    }
+
+    consultation* finished = q->head;
+    q->head=q->head->p;//we need to move to the next appointment in the queue because we are going to close the first appointment in the queue , because it it  obviously that is the appointment in the head it will be the first finished due to the his highest priority
+    q->size--;
+
+    //now we are going to update our empoyyes's records 
+
+    Employerecords* updated = *employees_records_head;
+    while(updated!=NULL && strcmp(updated->Employee_ID,finished->Employee_IDC)!=0){//we need to loop through the employees records to find the employee we want to update 
+        updated=updated->p;//we need to move to the next employee in the list because we didnt find the employee we want to update yet
+    }
+
+    char consultationdate[date];
+    printf("Enter the consultation date . Please ensurte that you enter it in the following format!\n");
+    printf("Date format : DD/MM/YYYY\n");
+    printf("consultation_Date : ");
+    scanf("%10s",consultationdate);
+
+
+    if(updated!=NULL){//it means that we found the id of the employement 
+        strcpy(updated->Last_consultation_Date,consultationdate); 
+        printf("Employee recored have been updated for %s\n",updated->Employee_ID);
+       
+    }else if (strcmp(finished->Consultation_Reason,"Pre-employment")==0){
+        //if the reason is pre-employment we gotta add a new employee to the record list 
+        Employerecords* newemployee =(Employerecords*)malloc(sizeof(Employerecords));
+        if(newemployee==NULL){
+            printf("Failed to create the newemployee record!!!!");
+            return;
+        }
+        strcpy(newemployee->Employee_ID,finished->Employee_IDC);//we need to copy the id and put it in the record
+        strcpy(newemployee->Full_Name,finished->Employee_Name);//we need to copy the name of the employee
+        strcpy(newemployee->Last_consultation_Date,consultationdate);
+        newemployee->Total_Number_of_consultations=1;
+        newemployee->p=*employees_records_head;
+        *employees_records_head = newemployee;
+        printf("A new employee have been added to the list!!");
+        printf("Employee_ID : %s",newemployee->Employee_ID);
+        printf("Employee Full Name : %s",newemployee->Full_Name) ;   
+    }
+
+    //after completing the consutlation or the appointment we have to delete it 
+
+    free(finished);
+     
+}
 
  
 
