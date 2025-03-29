@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-
+#define employeeRE "EmpRecords.txt"
+#define COnsultationS "Consultations.txt "
 
 
 
@@ -478,6 +480,69 @@ void Scheduling_appointments_of_the_next_day(Queue_appointments* q,Employerecord
     printf("Scheduling appointments of the next day successfully.\n");
 
 }
+
+
+
+// TASK 4 : Updating the records and consultations Files
+
+
+// now we need a procedure that let us update the records and consultaions files 
+
+
+void update_record_consultation_files(Queue_appointments* q,Employerecords* records){
+    //we need to open the EmpRecords.txt file in write mode because we are going to edit the file so we need to overwrite the olddata and replace it with new data 
+    FILE* employee_file = fopen("EmpRecords.txt","w");
+    //we need to open the Consultations.txt file in append mode  because we just need to add new data to the end of the file without erasing existing content 
+    FILE* consultation_file = fopen("Consultations.txt","a");
+    if(!employee_file || !consultation_file){
+        printf("Error!!! ""cannot open the files for the update.\n");
+        return;
+    }
+
+    //now we are going to update the employee records file 
+
+    Employerecords* employee = records;
+    while(employee){
+        fprintf(employee_file,"%s;%s;%s;%s\n",employee->Employee_ID,employee->Full_Name,employee->Last_consultation_Date,employee->Retrurn_to_wrok_Date);
+        employee=employee->p;
+    }
+
+    //now we are going to update the consultations fime 
+
+    consultation* cons = q->head;
+    while(cons){
+        Employerecords* emp = records;
+        while(emp){
+            if(strcmp(emp->Employee_ID,cons->Employee_IDC)==0){
+                fprintf(consultation_file,"%s;%s;%s;%s\n",cons->Employee_IDC,emp->Full_Name,cons->Consultation_Time,cons->Consultation_Reason);
+                break;//we need to break once we found the employee
+            }
+            emp=emp->p;
+        }
+        cons=cons->p;
+    }
+}
+
+
+void menu_list
+
+int main(){
+    Queue_appointments queue = {NULL,NULL,0};//initialize the queue
+    Employerecords* record = NULL;//initialize the list 
+    int choice;
+    do{
+        printf("\nOccupational Health Medical Visit Management SYSTEM\n");
+        printf("1. ")
+
+    }while(choice !=4);
+
+}
+
+
+
+
+
+
 
  
 
