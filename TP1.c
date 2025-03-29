@@ -392,6 +392,93 @@ void closing(Queue_appointments* q,ptr *employees_records_head){
      
 }
 
+//this function we only use it in scheduling next appointment for the next day for return to work visit
+void add_appointment_for_nextday(Queue_appointments* q,char* ID,char* Name,char* reason,char* time){
+    consultation* newone = (consultation*)malloc(sizeof(
+        consultation ));
+    strcpy(newone->Employee_IDC,ID);
+    strcpy(newone->Employee_Name,Name);
+    strcpy(newone->Consultation_Reason,reason);
+    strcpy(newone->Consultation_Time,time);
+
+    if (strcmp(reason, "Return-to-work") == 0) {
+        newone->priority = 2;
+    }
+    newone->p = NULL;
+
+    if(q->head==NULL || q->head->priority <newone->priority){
+        newone->p=q->head;
+        q->head=newone;
+        if(q->tail==NULL) q->tail=newone;
+    }else{
+        consultation* temp = q->head;
+        while(temp->p != NULL && temp->p->priority >= newone->priority){
+            temp=temp->p;
+        }
+        newone->p = temp->p;
+        temp->p=newone;
+        if(newone->p==NULL) q->tail = newone;
+
+    }
+    q->size++;
+
+}
+
+
+
+void Scheduling_appointments_of_the_next_day(Queue_appointments* q,Employerecords* head_record,char* nextday){
+    if(q->size>=max_appointments){
+        printf("The appointments have reached the maximum!!");
+        return;
+    }
+
+    char currenttime[6];//we need it to stor the cuurent appointment time(XXhXX)
+
+    printf("Enter the first appointment time (HHhMM,eg : 08h30) : ");
+    scanf("%s",currenttime);
+    //now we need to cover the time into integers for time calculation 
+
+    int hour=(currenttime[0] - '0')*10 + (currenttime[1] - '0');
+    int minute=(currenttime[3] - '0')*10 +(currenttime[4] - '0');
+
+
+    Employerecords* employee = head_record;
+    while(employee!=NULL && q->size < max_appointments) {
+        if(strcmp(employee->Retrurn_to_wrok_Date,nextday)==0){
+            add_appointment_for_nextday(q,employee->Employee_ID,employee->Full_Name,"Return-to-work",nextday);
+        }
+        else if(strcmp(employee->Last_consultation_Date,"")!=0){
+            char lastyears[5]={employee->Last_consultation_Date[6],employee->Last_consultation_Date[7], employee->Last_consultation_Date[8],employee->Last_consultation_Date[9] , '\0'};
+            char nextyears[5]={nextday[6],nextday[7],nextday[8],nextday[9]};
+            //now we need to convert these year into integers (for better manipulation)and im going to use atoi function that convert any string into integer 
+            int lastyear = atoi(lastyears);
+            int nextyear = atoi(nextyears);
+
+            if(lastyear - nextyear <= 1 ){
+                adding_new_appointments(q,employee->Employee_ID,employee->Full_Name,"Periodic examination",currenttime);
+            }
+
+        }
+        employee=employee->p;//move to the next employeee
+
+        //now we need an algorithm to compute the time
+        minute=minute+45;
+        if(minute>=60){
+            hour=hour+1;
+            minute=minute - 60;
+        }
+        //i used '0' because it's ascii value is 48 and when we add for example 48 to 5(5hours) it will return 53 and 53 is the ascii value of the charachter '5'
+        currenttime[0] = (hour / 10) +'0';
+        currenttime[1] = (hour%10)+'0';
+        currenttime[2] = 'h';
+        currenttime[3] = (minute/10)+ '0';
+        currenttime[4]= (minute %10) + '0';
+    } 
+
+    printf("Scheduling appointments of the next day successfully.\n");
+
+}
+
  
 
 
