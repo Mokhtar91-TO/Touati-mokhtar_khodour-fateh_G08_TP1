@@ -325,6 +325,7 @@ void rescheduling_for_nextday(Queue_appointments* q){
     }
     consultation* temp = q->head;//we need a temporary pointer to point to the head of the queue because we need to loop through the queue to reschedule the appointments for the next day 
 
+
     //we will loop through the queue until we reach the last appointment in the queue knowing that the last appointment in the queue has the lowest priority (it could be all of them has the highest priority but we will assume that the last appointment has the lowest priority)
 
     while(temp!=NULL){
@@ -447,7 +448,7 @@ void Scheduling_appointments_of_the_next_day(Queue_appointments* q,Employerecord
     Employerecords* employee = head_record;
     while(employee!=NULL && q->size < max_appointments) {
         if(strcmp(employee->Retrurn_to_wrok_Date,nextday)==0){
-            add_appointment_for_nextday(q,employee->Employee_ID,employee->Full_Name,"Return-to-work",nextday);
+            add_appointment_for_nextday(q,employee->Employee_ID,employee->Full_Name,"Return-to-work",currenttime);
         }
         else if(strcmp(employee->Last_consultation_Date,"")!=0){
             char lastyears[5]={employee->Last_consultation_Date[6],employee->Last_consultation_Date[7], employee->Last_consultation_Date[8],employee->Last_consultation_Date[9] , '\0'};
@@ -523,21 +524,247 @@ void update_record_consultation_files(Queue_appointments* q,Employerecords* reco
     }
 }
 
+void display_employees(Employerecords* head){
+    Employerecords* temp = head;
+    while(temp!=NULL){
+        printf("%s;%s;%d;%s;%s;%s",temp->Employee_ID,temp->Full_Name,temp->Total_Number_of_consultations,temp->Last_consultation_Date,temp->Retrurn_to_wrok_Date,temp->history);
+        printf("\n");
+        temp=temp->p;
+}
+}
 
-void menu_list
+void display_appointments(Queue_appointments* q){
+    if(q->size == 0){
+        printf("No appointments to display \n");
+        return;
+    }
+    consultation* temp = q->head;
+    while(temp!=NULL){
+        printf("%s;%s;%s;%s\n",temp->Employee_IDC,temp->Employee_Name,temp->Consultation_Time,temp->Consultation_Reason);
+        temp=temp->p;
+    }
+}
+
+
+
 
 int main(){
     Queue_appointments queue = {NULL,NULL,0};//initialize the queue
-    Employerecords* record = NULL;//initialize the list 
+    Employerecords* head = NULL;//initialize the list
+    consultation* cons = NULL;
+
+   head =  read_emprecord_file("EmpRecords.txt");
+   cons = read_consultation_file("Consultations.txt");
+   
+
+
+
     int choice;
     do{
-        printf("\nOccupational Health Medical Visit Management SYSTEM\n");
-        printf("1. ")
+        printf("\nOccupational Health Management System\n");
+        printf("1.Managing employees’ records\n");
+        printf("2.Managing appointments\n");
+        printf("3.Update Files\n");
+        printf("4.Exit\n");
+        printf("Enter your choice : ");
+        scanf("%d",&choice);
+        getchar();
+        switch (choice){
+            case 1 :{ 
+            int choice1;
+            do{
+            printf("\nEmployee Management\n");
+            printf("1.Add Employee\n");
+            printf("2.Update Employee\n");
+            printf("3.Delete Employee\n");
+            printf("4.Display Employee\n");
+            printf("5.Back to main menu\n");
+            printf("Enter your choice : ");
+            scanf("%d",&choice1);
+            getchar();
+            switch (choice1){
+                case 1:{
+                    Employerecords newEmp;
 
-    }while(choice !=4);
+                    printf("Enter Employee ID : ");
+                    scanf("%s",newEmp.Employee_ID);
+                    getchar();
+                    
 
+                    printf("Enter Full Name : ");
+                    scanf("%[^\n]",newEmp.Full_Name);
+
+
+                    printf("Enter Last Consultation Date (DD/MM/YYYY ) : ");
+                    scanf("%s",newEmp.Last_consultation_Date);
+
+                    printf("Enter the total number of consultations : ");
+                    scanf("%d",&newEmp.Total_Number_of_consultations);
+
+                    printf("Enter Return to work date :  ");
+                    scanf("%s",newEmp.Retrurn_to_wrok_Date);
+
+                    printf("Enter the history of reasons : ");
+                    scanf("%[^\n]",newEmp.history);
+
+                    add(&head,newEmp);
+                    printf("Employee added successfully\n");
+                    break;
+                }
+                case 2 : {
+                    Employerecords updateemp;
+                    char id[ID];
+                    printf("Enter the ID :");
+                    scanf("%s",id);
+                    getchar();
+
+                    printf("Enter new Full Name : ");
+                    scanf("%[^\n]",updateemp.Full_Name);
+                    getchar();
+
+                    printf("Enter New last consultation Date DD/MM/YYYY : ");
+                    scanf("%s",updateemp.Last_consultation_Date);
+                    getchar();
+
+                    printf("Enter New Total number of consultations : ");
+                    scanf("%d",&updateemp.Total_Number_of_consultations);
+                    getchar();
+
+                    printf("Enter New return to work date : ");
+                    scanf("%s",updateemp.Retrurn_to_wrok_Date);
+                    getchar();
+
+                    printf("Enter the new History reasons : ");
+                    scanf("%[^\n]",updateemp.history);
+                    getchar();
+
+                    update(head,updateemp,id);
+                    break;
+                }
+
+                case 3:{
+                    char id[ID];
+                    printf("Enter Employee ID to delete : ");
+                    scanf("%s",id);
+                    getchar();
+
+                    delete(&head,id);
+                    break;
+                }
+
+                case 4:
+                display_employees(head);
+                break;
+
+                case 5 :
+                printf("Retruning to main menu.....\n");
+                break;
+
+                default:
+                printf("Invalid choice !!!\n");
+                
+            }  
+        } while(choice1!=5);
+        break;
+    }  
+
+    case 2: {
+        int choice2;
+        do{
+            printf("\nAPPOINTMENT Management\n");
+            printf("1.Add New Appointment\n");
+            printf("2.closing Appointment\n");
+            printf("3.Scheduling Appointment\n");
+            printf("4.Display Appointment\n");
+            printf("5.Back to Main Menu\n");
+            printf("Enter your choice");
+            scanf("%d",&choice2);
+            getchar();
+            
+            switch(choice2){
+                case 1:{
+                char id[ID];
+                char name[full_name];
+                char reason[100];
+                char time[date2];
+
+                printf("Enter Employee ID : ");
+                scanf("%s",id);
+                getchar();
+
+                printf("Enter Employee Full name : ");
+                scanf("%[^\n]",name);
+                getchar();
+
+                printf("Enter Reason for consulation : ");
+                scanf("%[^\n]",reason);
+                getchar();
+
+                printf("Enter Appointment time (eg 08h30) : ");
+                scanf("%s",time);
+                getchar();
+
+                adding_new_appointments(&queue,id,name,reason,time);
+                printf("Appointment added successfully\n");
+
+                break;
+            }
+
+            case 2 : {
+                char id[ID];
+                printf("Enter the ID of employee to close appointment : ");
+                scanf("%s",id);
+                getchar();
+                
+                closing(&queue,&head);
+                break;
+            }
+
+            case 3 :{
+                char nextday[date];
+                printf("Enter The date of the next day DD/MM/YYYY : ");
+                scanf("%s",nextday);
+                getchar();
+
+                Scheduling_appointments_of_the_next_day(&queue,&head,nextday);
+                break ;
+            }
+
+            case 4:{
+            display_appointments(&queue);
+            break;
+            }
+
+            case 5 :
+            printf("Retruning to main menu.....\n");
+            break;
+
+            default:
+            printf("Invalid choice !!!\n");
+        }
+        }while(choice2!=5);
+        break;
+    }
+
+    case 3 : {
+        update_record_consultation_files(&queue,&head);
+        break;
+    }
+
+    case 4 : {
+        printf("Exiting the system...\n");
+        break;
+    }
+    
+    default : 
+    printf("Invalid choice!!!\n");
+     }
+    
+    }while(choice!=4);
+
+
+  return 0;
 }
-
 
 
 
