@@ -6,14 +6,14 @@
 #define employeeRE "EmpRecords.txt"
 #define COnsultationS "Consultations.txt "
 
+#define ID 8
+#define full_name 30
+#define date 10
+#define history 5
+#define date2 5
+#define max_appointments 10
 
 
-const int ID =8;
-const int full_name = 30;
-const int date = 10;//XX/XX/XXXX
-const int history =5;
-const int date2 = 5;//XX:XX
-const int max_appointments = 10;
 
 
 
@@ -27,7 +27,7 @@ typedef struct Employerecords{
     char Last_consultation_Date[date];//we need to define the last consultation date of the employee
     char Retrurn_to_wrok_Date[date];//we need to define the return to work date of the employee
     int Total_Number_of_consultations;//we need to define the total number of consultations of the employee
-    char history[history][500];//we need a matrix that hold the 5 reasons of past consultation 
+    char historyq[history][500];//we need a matrix that hold the 5 reasons of past consultation 
     struct Employerecords *p;
 }Employerecords;//we need to define a records that holds employee informations
 
@@ -70,16 +70,16 @@ Employerecords* read_emprecord_file(const char *emprecordfile){
 
         char bufferforhistory[500];// we need a buffer to store the history of the employee , so we are going to read all the history line  then put it in this temporary buffer 
 
-        if(fscanf(file,"%[^\]",bufferforhistory)==1){//%[^\"] it let me read the history of the employee not just the first reason and it stops when " appears in the string not space , it is very usefull and 1 it means that fscanf should read one string and put it in the buffer
+        if(fscanf(file,"%[^\n]",bufferforhistory)==1){//%[^\"] it let me read the history of the employee not just the first reason and it stops when " appears in the string not space , it is very usefull and 1 it means that fscanf should read one string and put it in the buffer
             char* string = strtok(bufferforhistory,",");//the function strtok let me split the string into multiple strings , i need just to defint the delimiter which is the comma in this case ',' and the char* string will point to the first string in the buffer. 
             int i=0;
             while(string!=NULL && i<history){//if the string is not empty  and the index is less than the history of the employee
-                strcpy(newemp->history[i],string);//we need to copy the string and put it in the right place in the histpry of the employee
+                strcpy(newemp->historyq[i],string);//we need to copy the string and put it in the right place in the histpry of the employee
                 string = strtok(NULL,",");//we need to move to the next string in the buffer , and we need to put NULL in the strtok function in order to continue reading the buffer and strok will remember the last position it stopped at because it replace , with \0 so when we write strok(NULL,",")  and strtok works internally with the buffer because there is a static pointer that stores the last position in the string    
                 i++;
             }
             while(i<history){//if the history of the employee is less than 5 we need to put empty strings in the rest of the history because we need to have 5 reasons of consultation for each employee
-                strcpy(newemp->history[i],"");
+                strcpy(newemp->historyq[i],"");
                 i++;
             }  
         }
@@ -212,7 +212,7 @@ void add_appointment(Queue_appointments* q,consultation* newconsultation){
 
 
 //now we need a function to read the consultations.txt file 
-consultation* read_consultation_file(const char *consultationfile){
+Queue_appointments* read_consultation_file(const char *consultationfile){
     FILE* file= fopen(consultationfile,"r");//withe this code we can open the file in read mode 
     if(file==NULL){
         printf("Error: could not open file\n");
@@ -283,39 +283,6 @@ int initialize_appointments_priority(char* consultation_reason){
 
    
 
-   
-
-
-
-//now we need a function to add new apppoinments on-demand
-//but if the reason is return to work it will be not accepted 
-
-void adding_new_appointments(Queue_appointments* q,char* ID,char* Name,char* consultatio_reason,char* time){
-    if(q->size>=max_appointments){
-        printf("The queue is full\n");
-        printf("rscheduling the appointment for the next day\n");
-        rescheduling_for_nextday(q);//if the queue is full we need to reschedule the appointment for the next day
-        return;
-    }
-
-    if(strcmp(consultatio_reason,"Return-to-work")==0){
-        printf("The reason is return to work so the appointment will not be accepted\n");
-        return;
-    }
-
-    consultation* newconsultation = (consultation*)malloc(sizeof(consultation));//we need to allocate memory for the new appointment
-    
-
-    strcpy(newconsultation->Employee_IDC,ID);//we need to copy the id of the employee to the new appointment 
-    strcpy(newconsultation->Employee_Name,Name);//we need to copy the name of the employee to the new appointment 
-    strcpy(newconsultation->Consultation_Reason,consultatio_reason);//we need to copy the consultation reason of the employee to the new appointment 
-    strcpy(newconsultation->Consultation_Time,time);//we need to copy the consultation time of the employee to the new appointment*
-    newconsultation->priority=initialize_appointments_priority(consultatio_reason);//we need to define the priority of the new appointment base on the consultation reason
-    add_appointment(q,newconsultation);//we need to add the new appointment to the queue
-    q->size++;//we need to increment the size of the queue because we added a new appointment to the queue
-
-}
-
 
 
 void rescheduling_for_nextday(Queue_appointments* q){
@@ -340,6 +307,42 @@ void rescheduling_for_nextday(Queue_appointments* q){
     strcpy(temp->Consultation_Time,"Next day");//we need to reschedule the appointment for the next day 
     printf("The appointment rescheduled successfully for the employye ID = %s  \n",temp->Employee_IDC);
 }
+   
+
+
+
+//now we need a function to add new apppoinments on-demand
+//but if the reason is return to work it will be not accepted 
+
+void adding_new_appointments(Queue_appointments* q, char* id, char* Name, char* consultation_reason, char* time) {
+    if(q->size>=max_appointments){
+        printf("The queue is full\n");
+        printf("rscheduling the appointment for the next day\n");
+        rescheduling_for_nextday(q);//if the queue is full we need to reschedule the appointment for the next day
+        return;
+    }
+
+    if(strcmp(consultation_reason,"Return-to-work")==0){
+        printf("The reason is return to work so the appointment will not be accepted\n");
+        return;
+    }
+
+    consultation* newconsultation = (consultation*)malloc(sizeof(consultation));//we need to allocate memory for the new appointment
+    
+
+    strcpy(newconsultation->Employee_IDC,id);//we need to copy the id of the employee to the new appointment 
+    strcpy(newconsultation->Employee_Name,Name);//we need to copy the name of the employee to the new appointment 
+    strcpy(newconsultation->Consultation_Reason,consultation_reason);//we need to copy the consultation reason of the employee to the new appointment 
+    strcpy(newconsultation->Consultation_Time,time);//we need to copy the consultation time of the employee to the new appointment*
+    newconsultation->priority=initialize_appointments_priority(consultation_reason);//we need to define the priority of the new appointment base on the consultation reason
+    add_appointment(q,newconsultation);//we need to add the new appointment to the queue
+    q->size++;//we need to increment the size of the queue because we added a new appointment to the queue
+
+}
+
+
+
+
 
 //now we move to the cancelling or closing function(once the consultation is finished)
 
@@ -396,10 +399,10 @@ void closing(Queue_appointments* q,ptr *employees_records_head){
 }
 
 //this function we only use it in scheduling next appointment for the next day for return to work visit
-void add_appointment_for_nextday(Queue_appointments* q,char* ID,char* Name,char* reason,char* time){
+void add_appointment_for_nextday(Queue_appointments* q,char* id,char* Name,char* reason,char* time){
     consultation* newone = (consultation*)malloc(sizeof(
         consultation ));
-    strcpy(newone->Employee_IDC,ID);
+    strcpy(newone->Employee_IDC,id);
     strcpy(newone->Employee_Name,Name);
     strcpy(newone->Consultation_Reason,reason);
     strcpy(newone->Consultation_Time,time);
@@ -504,7 +507,13 @@ void update_record_consultation_files(Queue_appointments* q,Employerecords* reco
 
     Employerecords* employee = records;
     while(employee){
-        fprintf(employee_file,"%s;%s;%s;%s\n",employee->Employee_ID,employee->Full_Name,employee->Last_consultation_Date,employee->Retrurn_to_wrok_Date);
+        fprintf(employee_file,"%s;%s;%d;%s;%s\n",employee->Employee_ID,employee->Full_Name,employee->Total_Number_of_consultations,employee->Last_consultation_Date,employee->Retrurn_to_wrok_Date);
+        for(int i=0;i<history;i++){
+            if(strlen(employee->historyq[i]) >0){
+                fprintf(employee_file,"%s, ",employee->historyq[i]);
+            }
+        }
+        fprintf(employee_file,"\n");
         employee=employee->p;
     }
 
@@ -527,7 +536,12 @@ void update_record_consultation_files(Queue_appointments* q,Employerecords* reco
 void display_employees(Employerecords* head){
     Employerecords* temp = head;
     while(temp!=NULL){
-        printf("%s;%s;%d;%s;%s;%s",temp->Employee_ID,temp->Full_Name,temp->Total_Number_of_consultations,temp->Last_consultation_Date,temp->Retrurn_to_wrok_Date,temp->history);
+        printf("%s;%s;%d;%s;%s",temp->Employee_ID,temp->Full_Name,temp->Total_Number_of_consultations,temp->Last_consultation_Date,temp->Retrurn_to_wrok_Date);
+        for(int i =0;i<history;i++){
+            if(strlen(temp->historyq[i])>0){
+                printf("%s,",temp->historyq[i]);
+            }
+        }
         printf("\n");
         temp=temp->p;
 }
@@ -549,9 +563,9 @@ void display_appointments(Queue_appointments* q){
 
 
 int main(){
-    Queue_appointments queue = {NULL,NULL,0};//initialize the queue
+    Queue_appointments* queue = create_Queue();
     Employerecords* head = NULL;//initialize the list
-    consultation* cons = NULL;
+    Queue_appointments* cons = NULL;
 
    head =  read_emprecord_file("EmpRecords.txt");
    cons = read_consultation_file("Consultations.txt");
@@ -605,7 +619,7 @@ int main(){
                     scanf("%s",newEmp.Retrurn_to_wrok_Date);
 
                     printf("Enter the history of reasons : ");
-                    scanf("%[^\n]",newEmp.history);
+                    scanf("%[^\n]",newEmp.historyq);
 
                     add(&head,newEmp);
                     printf("Employee added successfully\n");
@@ -635,7 +649,7 @@ int main(){
                     getchar();
 
                     printf("Enter the new History reasons : ");
-                    scanf("%[^\n]",updateemp.history);
+                    scanf("%[^\n]",updateemp.historyq);
                     getchar();
 
                     update(head,updateemp,id);
@@ -704,7 +718,7 @@ int main(){
                 scanf("%s",time);
                 getchar();
 
-                adding_new_appointments(&queue,id,name,reason,time);
+                adding_new_appointments(queue,id,name,reason,time);
                 printf("Appointment added successfully\n");
 
                 break;
@@ -716,7 +730,7 @@ int main(){
                 scanf("%s",id);
                 getchar();
                 
-                closing(&queue,&head);
+                closing(queue,&head);
                 break;
             }
 
@@ -726,12 +740,12 @@ int main(){
                 scanf("%s",nextday);
                 getchar();
 
-                Scheduling_appointments_of_the_next_day(&queue,&head,nextday);
+                Scheduling_appointments_of_the_next_day(queue,head,nextday);
                 break ;
             }
 
             case 4:{
-            display_appointments(&queue);
+            display_appointments(queue);
             break;
             }
 
@@ -747,7 +761,7 @@ int main(){
     }
 
     case 3 : {
-        update_record_consultation_files(&queue,&head);
+        update_record_consultation_files(queue,head);
         break;
     }
 
